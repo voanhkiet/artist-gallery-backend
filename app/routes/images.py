@@ -21,7 +21,8 @@ def upload():
     print("FILES:", request.files)
     print("FORM:", request.form)
 
-    file = request.files["image"] if "image" in request.files else None    title = request.form.get("title")
+    file = request.files["image"] if "image" in request.files else None
+    title = request.form.get("title")
     description = request.form.get("description")
 
     # ✅ VALIDATION
