@@ -21,9 +21,15 @@ def upload():
 
     # 🔥 FIX JWT
     from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
+    from flask_jwt_extended.exceptions import JWTExtendedException
 
-    verify_jwt_in_request()
-    user_id = get_jwt_identity()
+    try:
+        verify_jwt_in_request()
+        user_id = get_jwt_identity()
+        print("USER ID:", user_id)
+    except JWTExtendedException as e:
+        print("JWT ERROR:", str(e))
+        return jsonify({"msg": "JWT invalid"}), 401
 
     if not user_id:
         return jsonify({"msg": "Invalid token"}), 401
