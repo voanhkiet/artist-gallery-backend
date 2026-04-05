@@ -12,9 +12,13 @@ image_bp = Blueprint("images", __name__)
 def upload():
     user_id = get_jwt_identity()
 
-    file = request.files["image"]
+    file = request.files.get("image")
     title = request.form.get("title")
     description = request.form.get("description")
+
+    # ✅ VALIDATION
+    if not file or not title:
+        return jsonify({"msg": "Missing image or title"}), 422
 
     image_url, public_id = upload_image(file)
 
