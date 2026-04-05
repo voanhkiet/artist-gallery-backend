@@ -19,11 +19,14 @@ def upload():
     if not file or not title:
         return jsonify({"msg": "Missing image or title"}), 422
 
-    # 🔥 NOW check JWT manually
+    # 🔥 FIX JWT
     from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
 
     verify_jwt_in_request()
     user_id = get_jwt_identity()
+
+    if not user_id:
+        return jsonify({"msg": "Invalid token"}), 401
 
     image_url, public_id = upload_image(file)
 
