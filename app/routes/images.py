@@ -7,25 +7,19 @@ from app.utils.cloudinary import upload_image, delete_image
 image_bp = Blueprint("images", __name__)
 
 # Upload
-@image_bp.route("/", methods=["POST", "OPTIONS"])
-@jwt_required(optional=True)
+@image_bp.route("/", methods=["POST"])
+@jwt_required()
 def upload():
-    # ✅ handle preflight (keep this if you added it)
-    if request.method == "OPTIONS":
-        return jsonify({"msg": "OK"}), 200
-
     user_id = get_jwt_identity()
 
-    # 🔥 ADD DEBUG RIGHT HERE
     print("CONTENT TYPE:", request.content_type)
     print("FILES:", request.files)
     print("FORM:", request.form)
 
-    file = request.files["image"] if "image" in request.files else None
+    file = request.files.get("image")
     title = request.form.get("title")
     description = request.form.get("description")
 
-    # ✅ VALIDATION
     if not file or not title:
         return jsonify({"msg": "Missing image or title"}), 422
 
