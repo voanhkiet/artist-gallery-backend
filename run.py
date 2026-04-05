@@ -1,5 +1,9 @@
+from dotenv import load_dotenv
+load_dotenv()
 from app import create_app, db
 from app.utils.cloudinary import init_cloudinary
+
+
 
 app = create_app()
 
