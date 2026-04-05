@@ -10,17 +10,22 @@ image_bp = Blueprint("images", __name__)
 @image_bp.route("/", methods=["POST", "OPTIONS"])
 @jwt_required(optional=True)
 def upload():
+    # ✅ handle preflight (keep this if you added it)
     if request.method == "OPTIONS":
         return jsonify({"msg": "OK"}), 200
 
     user_id = get_jwt_identity()
 
-    file = request.files.get("image")
-    title = request.form.get("title")
-
+    # 🔥 ADD DEBUG RIGHT HERE
+    print("CONTENT TYPE:", request.content_type)
     print("FILES:", request.files)
     print("FORM:", request.form)
 
+    file = request.files.get("image")
+    title = request.form.get("title")
+    description = request.form.get("description")
+
+    # ✅ VALIDATION
     if not file or not title:
         return jsonify({"msg": "Missing image or title"}), 422
 
@@ -28,6 +33,7 @@ def upload():
 
     image = Image(
         title=title,
+        description=description,
         image_url=image_url,
         public_id=public_id,
         user_id=user_id
