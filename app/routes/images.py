@@ -13,6 +13,10 @@ def upload():
     user_id = get_jwt_identity()
 
     file = request.files.get("image")
+
+    print("FILES:", request.files)
+    print("FILE OBJECT:", file)
+
     title = request.form.get("title")
     description = request.form.get("description")
 
@@ -20,7 +24,7 @@ def upload():
     if not file or not title:
         return jsonify({"msg": "Missing image or title"}), 422
 
-    image_url, public_id = upload_image(file)
+    image_url, public_id = upload_image(file.stream)
 
     image = Image(
         title=title,
