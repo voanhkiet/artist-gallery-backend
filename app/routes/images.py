@@ -21,15 +21,14 @@ def upload():
     print("FILES:", request.files)
     print("FORM:", request.form)
 
-    file = request.files.get("image")
-    title = request.form.get("title")
+    file = request.files["image"] if "image" in request.files else None    title = request.form.get("title")
     description = request.form.get("description")
 
     # ✅ VALIDATION
     if not file or not title:
         return jsonify({"msg": "Missing image or title"}), 422
 
-    image_url, public_id = upload_image(file.stream)
+    image_url, public_id = upload_image(file)
 
     image = Image(
         title=title,
