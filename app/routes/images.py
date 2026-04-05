@@ -8,26 +8,27 @@ image_bp = Blueprint("images", __name__)
 
 # Upload
 @image_bp.route("/", methods=["POST"])
-@jwt_required()
 def upload():
-    user_id = get_jwt_identity()
-
     print("CONTENT TYPE:", request.content_type)
     print("FILES:", request.files)
     print("FORM:", request.form)
 
     file = request.files.get("image")
     title = request.form.get("title")
-    description = request.form.get("description")
 
     if not file or not title:
         return jsonify({"msg": "Missing image or title"}), 422
+
+    # 🔥 NOW check JWT manually
+    from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
+
+    verify_jwt_in_request()
+    user_id = get_jwt_identity()
 
     image_url, public_id = upload_image(file)
 
     image = Image(
         title=title,
-        description=description,
         image_url=image_url,
         public_id=public_id,
         user_id=user_id
