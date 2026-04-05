@@ -1,12 +1,18 @@
 import os
 
 class Config:
-  SECRET_KEY = "super-secret-key"
-  SQLALCHEMY_DATABASE_URI = "sqlite:///database.db"
-  SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SECRET_KEY = os.getenv("SECRET_KEY")
 
-  JWT_SECRET_KEY = "jwt-secret-key"
+    db_uri = os.getenv("DATABASE_URL")
 
-  CLOUDINARY_CLOUD_NAME =  "m-t-vi-t-group"
-  CLOUDINARY_API_KEY = "289114531813425"
-  CLOUDINARY_API_SECRET = "gp9eVWqKQkUT_YfmXgJ5YvlEQvA"
+    if db_uri and db_uri.startswith("postgres://"):
+        db_uri = db_uri.replace("postgres://", "postgresql://")
+
+    SQLALCHEMY_DATABASE_URI = db_uri
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+
+    CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME")
+    CLOUDINARY_API_KEY = os.getenv("CLOUDINARY_API_KEY")
+    CLOUDINARY_API_SECRET = os.getenv("CLOUDINARY_API_SECRET")
