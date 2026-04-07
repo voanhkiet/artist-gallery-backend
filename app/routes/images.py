@@ -15,6 +15,7 @@ def upload():
 
     file = request.files.get("image")
     title = request.form.get("title")
+    description = request.form.get("description")
 
     if not file or not title:
         return jsonify({"msg": "Missing image or title"}), 422
@@ -38,6 +39,7 @@ def upload():
 
     image = Image(
         title=title,
+        description=description,
         image_url=image_url,
         public_id=public_id,
         user_id=user_id
@@ -58,9 +60,12 @@ def get_images():
         {
             "id": img.id,
             "title": img.title,
+            "description": img.description,  # ✅ NEW
             "image_url": img.image_url,
-            "user_id": img.user_id
-        } for img in images
+            "created_at": img.created_at.isoformat() if img.created_at else None,  # ✅ NEW
+            "user": img.owner.username if img.owner else "Unknown"  # ✅ NEW
+        }
+        for img in images
     ])
 
 
