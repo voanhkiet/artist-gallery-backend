@@ -9,7 +9,7 @@ class User(db.Model):
   created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
   images = db.relationship("Image", backref="owner", lazy=True)
-
+  likes = db.relationship("Like", backref="user", lazy=True)
 
 class Image(db.Model):
   id = db.Column(db.Integer, primary_key=True)
@@ -20,3 +20,11 @@ class Image(db.Model):
 
   user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
   created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+  likes = db.relationship("Like", backref="image", lazy=True)
+
+
+class Like(db.Model):
+  id = db.Column(db.Integer, primary_key=True)
+  user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+  image_id = db.Column(db.Integer, db.ForeignKey("image.id"))
