@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from app.models import Image
+from app.models import Image, Like
 from app import db
 from app.utils.cloudinary import upload_image, delete_image
 
@@ -54,19 +54,48 @@ def upload():
 # Get all (public)
 @image_bp.route("/", methods=["GET"])
 def get_images():
+    from flask_jwt_extended import verify_jwt_in_request
+    from flask_jwt_extended.exceptions import JWTExtendedException
+
+    user_id = None
+
+    # 🔥 try get user (optional login)
+    try:
+        verify_jwt_in_request(optional=True)
+        user_id = get_jwt_identity()
+    except JWTExtendedException:
+        pass
+
     images = Image.query.all()
 
-    return jsonify([
-        {
+    result = []
+
+    for img in images:
+        # 👍 count likes
+        likes_count = Like.query.filter_by(image_id=img.id).count()
+
+        # ❤️ check if current user liked
+        is_liked = False
+        if user_id:
+            is_liked = Like.query.filter_by(
+                user_id=user_id,
+                image_id=img.id
+            ).first() is not None
+
+        result.append({
             "id": img.id,
             "title": img.title,
-            "description": img.description,  # ✅ NEW
+            "description": img.description,
             "image_url": img.image_url,
-            "created_at": img.created_at.isoformat() if img.created_at else None,  # ✅ NEW
-            "user": img.owner.username if img.owner else "Unknown"  # ✅ NEW
-        }
-        for img in images
-    ])
+            "created_at": img.created_at.isoformat() if img.created_at else None,
+            "user": img.owner.username if img.owner else "Unknown",
+
+            # 🔥 NEW FIELDS
+            "likes_count": likes_count,
+            "is_liked": is_liked
+        })
+
+    return jsonify(result)
 
 
 # Update
