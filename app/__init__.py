@@ -28,6 +28,9 @@ def create_app():
     jwt.init_app(app)
     bcrypt.init_app(app)
 
+    from flask_migrate import Migrate
+    migrate = Migrate(app, db)
+
     # Models
     from app.models.user import User
     from app.models.image import Image
