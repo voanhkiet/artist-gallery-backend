@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from app.models import Image, Like
+from app.models import Image, Like, User
 from app import db
 from app.utils.cloudinary import upload_image, delete_image
 
@@ -133,3 +133,19 @@ def delete(id):
     db.session.commit()
 
     return jsonify({"msg": "Deleted"})
+
+@image_bp.route("/user/<username>", methods=["GET"])
+def get_user_images(username):
+    images = Image.query.join(User).filter(User.username == username).all()
+
+    result = []
+    for img in images:
+        result.append({
+            "id": img.id,
+            "title": img.title,
+            "image_url": img.image_url,
+            "created_at": img.created_at.isoformat() if img.created_at else None,
+            "user": img.owner.username if img.owner else "Unknown"
+        })
+
+    return jsonify(result)
