@@ -149,3 +149,28 @@ def get_user_images(username):
         })
 
     return jsonify(result)
+
+@image_bp.route("/user/profile/<username>", methods=["GET"])
+def get_user_profile(username):
+    user = User.query.filter_by(username=username).first_or_404()
+
+    return jsonify({
+        "username": user.username,
+        "avatar_url": user.avatar_url,
+        "bio": user.bio
+    })
+
+@image_bp.route("/user/profile", methods=["PUT"])
+@jwt_required()
+def update_profile():
+    user_id = get_jwt_identity()
+    user = User.query.get_or_404(user_id)
+
+    data = request.json
+
+    user.bio = data.get("bio", user.bio)
+    user.avatar_url = data.get("avatar_url", user.avatar_url)
+
+    db.session.commit()
+
+    return jsonify({"msg": "Profile updated"})

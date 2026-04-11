@@ -6,6 +6,11 @@ class User(db.Model):
     username = db.Column(db.String(80), unique=True)
     email = db.Column(db.String(120), unique=True)
     password = db.Column(db.String(200))
+
+    # New
+    avatar_url = db.Column(db.String(255))
+    bio = db.Column(db.Text)
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     images = db.relationship("Image", backref="owner", lazy=True)
