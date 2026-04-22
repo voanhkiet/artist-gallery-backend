@@ -5,13 +5,15 @@ from app import db
 
 admin_bp = Blueprint("admin", __name__)
 
-
 @admin_bp.route("/pending", methods=["GET"])
 @jwt_required()
 def get_pending():
     current = get_jwt_identity()
 
-    # 🔒 protect admin
+    # 🛡️ protect token format
+    if not isinstance(current, dict):
+        return jsonify({"msg": "Invalid token"}), 401
+
     if current["role"] != "admin":
         return jsonify({"msg": "Forbidden"}), 403
 
@@ -26,10 +28,14 @@ def get_pending():
         for u in users
     ])
 
+
 @admin_bp.route("/approve/<int:user_id>", methods=["POST"])
 @jwt_required()
 def approve(user_id):
     current = get_jwt_identity()
+
+    if not isinstance(current, dict):
+        return jsonify({"msg": "Invalid token"}), 401
 
     if current["role"] != "admin":
         return jsonify({"msg": "Forbidden"}), 403
