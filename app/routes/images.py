@@ -8,11 +8,8 @@ image_bp = Blueprint("images", __name__)
 
 # Upload
 @image_bp.route("/", methods=["POST"])
+@jwt_required()
 def upload():
-    print("CONTENT TYPE:", request.content_type)
-    print("FILES:", request.files)
-    print("FORM:", request.form)
-
     file = request.files.get("image")
     title = request.form.get("title")
     description = request.form.get("description")
@@ -20,20 +17,12 @@ def upload():
     if not file or not title:
         return jsonify({"msg": "Missing image or title"}), 422
 
-    # 🔥 FIX JWT
-    from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
-    from flask_jwt_extended.exceptions import JWTExtendedException
+    current_user = get_jwt_identity()
+    user_id = current_user["id"]
+    role = current_user["role"]
 
-    try:
-        verify_jwt_in_request()
-        user_id = int(get_jwt_identity())
-        print("USER ID:", user_id)
-    except JWTExtendedException as e:
-        print("JWT ERROR:", str(e))
-        return jsonify({"msg": "JWT invalid"}), 401
-
-    if not user_id:
-        return jsonify({"msg": "Invalid token"}), 401
+    if role != "artist":
+        return jsonify({"msg": "Waiting for approval"}), 403
 
     image_url, public_id = upload_image(file)
 
@@ -62,7 +51,10 @@ def get_images():
     # 🔥 try get user (optional login)
     try:
         verify_jwt_in_request(optional=True)
-        user_id = get_jwt_identity()
+        current_user = get_jwt_identity()
+
+        if current_user:
+            user_id = current_user["id"]
     except JWTExtendedException:
         pass
 
@@ -102,7 +94,8 @@ def get_images():
 @image_bp.route("/<int:id>", methods=["PUT"])
 @jwt_required()
 def update(id):
-    user_id = get_jwt_identity()
+    current_user = get_jwt_identity()
+    user_id = current_user["id"]    
     image = Image.query.get_or_404(id)
 
     if image.user_id != user_id:
@@ -121,7 +114,9 @@ def update(id):
 @image_bp.route("/<int:id>", methods=["DELETE"])
 @jwt_required()
 def delete(id):
-    user_id = get_jwt_identity()
+    current_user = get_jwt_identity()
+    user_id = current_user["id"]
+
     image = Image.query.get_or_404(id)
 
     if image.user_id != user_id:
@@ -163,7 +158,9 @@ def get_user_profile(username):
 @image_bp.route("/user/profile", methods=["PUT"])
 @jwt_required()
 def update_profile():
-    user_id = get_jwt_identity()
+    current_user = get_jwt_identity()
+    user_id = current_user["id"]    
+
     user = User.query.get_or_404(user_id)
 
     data = request.json

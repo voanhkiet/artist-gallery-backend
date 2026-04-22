@@ -9,19 +9,41 @@ auth_bp = Blueprint("auth", __name__)
 def register():
     data = request.json
 
+    # 🔥 1. validate input
+    if not data.get("email") or not data.get("password"):
+        return jsonify({"msg": "Missing fields"}), 400
+
+    # 🔥 2. check duplicate email (ADD HERE)
+    existing_user = User.query.filter_by(email=data["email"]).first()
+    if existing_user:
+        return jsonify({"msg": "Email already exists"}), 400
+
+    # 🔥 3. hash password
     hashed_pw = bcrypt.generate_password_hash(data["password"]).decode("utf-8")
 
+    # 🔥 4. get role
+    role = data.get("role", "user")
+
+    # 🔥 5. convert artist → pending
+    if role == "artist":
+        role = "pending_artist"
+
+    # 🔥 6. create user
     user = User(
         username=data["username"],
         email=data["email"],
-        password=hashed_pw
+        password=hashed_pw,
+        role=role
     )
 
+    # 🔥 7. save
     db.session.add(user)
     db.session.commit()
 
-    return jsonify({"msg": "User created"})
-
+    return jsonify({
+        "msg": "User created",
+        "role": role
+    })
 
 @auth_bp.route("/login", methods=["POST"])
 def login():
@@ -29,7 +51,17 @@ def login():
     user = User.query.filter_by(email=data["email"]).first()
 
     if user and bcrypt.check_password_hash(user.password, data["password"]):
-        token = create_access_token(identity=str(user.id))
-        return jsonify({"token": token})
+
+        # INCLUDE ROLE IN TOKEN
+        token = create_access_token(
+            identity={
+                "id": user.id,
+                "role": user.role
+            }
+        )
+        return jsonify({
+            "token": token,
+            "role": user.role # send to frontend
+        })
 
     return jsonify({"msg": "Invalid credentials"}), 401

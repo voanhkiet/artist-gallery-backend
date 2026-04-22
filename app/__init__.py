@@ -35,14 +35,17 @@ def create_app():
     from app.models.user import User
     from app.models.image import Image
     from app.models.like import Like
+    
 
     # Routes
     from app.routes.auth import auth_bp
     from app.routes.images import image_bp
     from app.routes.likes import like_bp
+    from app.routes.admin import admin_bp
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(image_bp, url_prefix="/api/images")
     app.register_blueprint(like_bp, url_prefix="/api/likes")
+    app.register_blueprint(admin_bp, url_prefix="/api/admin")
 
     return app
