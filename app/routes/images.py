@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from app.models import Image, Like, User
 from app import db
 from app.utils.cloudinary import upload_image, delete_image
@@ -17,9 +17,9 @@ def upload():
     if not file or not title:
         return jsonify({"msg": "Missing image or title"}), 422
 
-    current_user = get_jwt_identity()
-    user_id = current_user["id"]
-    role = current_user["role"]
+    # ✅ NEW JWT STRUCTURE
+    user_id = int(get_jwt_identity())
+    role = get_jwt().get("role")
 
     if role != "artist":
         return jsonify({"msg": "Waiting for approval"}), 403
@@ -43,7 +43,7 @@ def upload():
 # Get all (public)
 @image_bp.route("/", methods=["GET"])
 def get_images():
-    from flask_jwt_extended import verify_jwt_in_request
+    from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity, get_jwt    
     from flask_jwt_extended.exceptions import JWTExtendedException
 
     user_id = None
@@ -51,11 +51,8 @@ def get_images():
     # 🔥 try get user (optional login)
     try:
         verify_jwt_in_request(optional=True)
-        current_user = get_jwt_identity()
-
-        if current_user:
-            user_id = current_user["id"]
-    except JWTExtendedException:
+        user_id = int(get_jwt_identity())
+    except:
         pass
 
     images = Image.query.all()
@@ -94,8 +91,8 @@ def get_images():
 @image_bp.route("/<int:id>", methods=["PUT"])
 @jwt_required()
 def update(id):
-    current_user = get_jwt_identity()
-    user_id = current_user["id"]    
+    user_id = int(get_jwt_identity())
+
     image = Image.query.get_or_404(id)
 
     if image.user_id != user_id:
@@ -114,8 +111,7 @@ def update(id):
 @image_bp.route("/<int:id>", methods=["DELETE"])
 @jwt_required()
 def delete(id):
-    current_user = get_jwt_identity()
-    user_id = current_user["id"]
+    user_id = int(get_jwt_identity())
 
     image = Image.query.get_or_404(id)
 
@@ -158,8 +154,7 @@ def get_user_profile(username):
 @image_bp.route("/user/profile", methods=["PUT"])
 @jwt_required()
 def update_profile():
-    current_user = get_jwt_identity()
-    user_id = current_user["id"]    
+    user_id = int(get_jwt_identity())
 
     user = User.query.get_or_404(user_id)
 

@@ -38,8 +38,8 @@ def login():
     if user and bcrypt.check_password_hash(user.password, data["password"]):
 
         token = create_access_token(
-            identity={
-                "id": user.id,
+            identity=str(user.id),   # ✅ MUST be string
+            additional_claims={
                 "role": user.role
             }
         )
