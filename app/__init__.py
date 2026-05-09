@@ -17,12 +17,20 @@ def create_app():
     app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
     CORS(
-        app,
-        resources={r"/api/*": {"origins": "https://artist-gallery-alpha.vercel.app"}},
-        supports_credentials=True,
-        allow_headers=["Content-Type", "Authorization"],
-        methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
-    )
+    app,
+    resources={
+        r"/api/*": {
+            "origins": [
+                "https://hoasidongthap.online",
+                "https://www.hoasidongthap.online",
+                "https://artist-gallery-alpha.vercel.app"
+            ]
+        }
+    },
+    supports_credentials=True,
+    allow_headers=["Content-Type", "Authorization"],
+    methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+)
 
     db.init_app(app)
     jwt.init_app(app)
